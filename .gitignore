@@ -1,0 +1,50 @@
+# Chung cho toàn bộ dự án
+node_modules/
+dist/
+*.log
+.env
+.env.*
+*.tsbuildinfo
+
+# Next.js (frontend)
+.next/
+out/
+frontend/.env.local
+
+# Docker volumes/data cache 
+**/data/
+**/volumes/
+*.pid
+
+# Thư mục riêng của IDE/OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Test và Coverage (nếu dùng)
+coverage/
+
+# Build (nếu về sau có cấu hình build tách biệt)
+build/
+
+# Lock file nếu không đồng bộ giữa npm/yarn (chọn 1)
+# yarn.lock
+# pnpm-lock.yaml
+
+# File tạm của TypeScript trong từng service và api-gateway
+api-gateway/dist/
+services/*/dist/
+
+# File tạm của Docker trong từng service và api-gateway (nếu có)
+api-gateway/data/
+api-gateway/volumes/
+services/*/data/
+services/*/volumes/
+
+# Mysql
+mysql/
+*.sql
+*.db
+
+# File tạm của shared (nếu có build hoặc generate)
+shared/dist/mysql

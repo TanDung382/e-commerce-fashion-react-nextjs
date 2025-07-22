@@ -1,0 +1,174 @@
+services:
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - '4000:4000'
+    env_file:
+      - ./api-gateway/.env
+    volumes:
+      - ./api-gateway:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # Frontend
+  frontend:
+    build: ./frontend
+    ports:
+      - '3000:3000'
+    env_file:
+      - ./frontend/.env.local
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # Auth Service
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - '5000:5000'
+    env_file:
+      - ./services/auth-service/.env
+    depends_on:
+      - auth-db
+    volumes:
+      - ./services/auth-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  auth-db:
+    image: mysql:8.0
+    container_name: mysql-auth
+    restart: always
+    env_file:
+      - ./services/auth-service/.env
+    ports:
+      - '3500:3306'
+    volumes:
+      - ./mysql/auth:/var/lib/mysql
+
+  # Product Service
+  product-service:
+    build: ./services/product-service
+    ports:
+      - '5001:5001'
+    env_file:
+      - ./services/product-service/.env
+    depends_on:
+      - product-db
+    volumes:
+      - ./services/product-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  product-db:
+    image: mysql:8.0
+    container_name: mysql-product
+    restart: always
+    env_file:
+      - ./services/product-service/.env
+    ports:
+      - '3501:3306'
+    volumes:
+      - ./mysql/product:/var/lib/mysql
+
+  # User Service
+  user-service:
+    build: ./services/user-service
+    ports:
+      - '5002:5002'
+    env_file:
+      - ./services/user-service/.env
+    depends_on:
+      - user-db
+    volumes:
+      - ./services/user-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  user-db:
+    image: mysql:8.0
+    container_name: mysql-user
+    restart: always
+    env_file:
+      - ./services/user-service/.env
+    ports:
+      - '3502:3306'
+    volumes:
+      - ./mysql/user:/var/lib/mysql
+
+  # Cart Service
+  cart-service:
+    build: ./services/cart-service
+    ports:
+      - '5003:5003'
+    env_file:
+      - ./services/cart-service/.env
+    depends_on:
+      - cart-db
+    volumes:
+      - ./services/cart-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  cart-db:
+    image: mysql:8.0
+    container_name: mysql-cart
+    restart: always
+    env_file:
+      - ./services/cart-service/.env
+    ports:
+      - '3503:3306'
+    volumes:
+      - ./mysql/cart:/var/lib/mysql
+
+  # Order Service
+  order-service:
+    build: ./services/order-service
+    ports:
+      - '5004:5004'
+    env_file:
+      - ./services/order-service/.env
+    depends_on:
+      - order-db
+    volumes:
+      - ./services/order-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  order-db:
+    image: mysql:8.0
+    container_name: mysql-order
+    restart: always
+    env_file:
+      - ./services/order-service/.env
+    ports:
+      - '3504:3306'
+    volumes:
+      - ./mysql/order:/var/lib/mysql
+
+  # Inventory Service
+  inventory-service:
+    build: ./services/inventory-service
+    ports:
+      - '5005:5005'
+    env_file:
+      - ./services/inventory-service/.env
+    depends_on:
+      - inventory-db
+    volumes:
+      - ./services/inventory-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  inventory-db:
+    image: mysql:8.0
+    container_name: mysql-inventory
+    restart: always
+    env_file:
+      - ./services/inventory-service/.env
+    ports:
+      - '3505:3306'
+    volumes:
+      - ./mysql/inventory:/var/lib/mysql
