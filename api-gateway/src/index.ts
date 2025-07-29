@@ -1,43 +1,39 @@
-import express from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import cors from 'cors';
+import morgan from 'morgan';
+
+// Import router 
+import authProxy from './routes/authProxy';
+import userProxy from './routes/userProxy';
 
 dotenv.config();
-const app = express();
-const PORT = process.env.PORT || 4001;
 
-app.get('/', (_, res) => {
-  res.send('API Gateway is running.');
+const app: Application = express();
+const PORT = parseInt(process.env.PORT || '4000', 10);
+
+app.use(cors());
+app.use(express.json());
+app.use(morgan('dev')); 
+
+app.get('/', (_req: Request, res: Response) => {
+    res.status(200).send('API Gateway is running.');
 });
 
-app.use('/api/auth', createProxyMiddleware({ 
-  target: process.env.AUTH_SERVICE_URL || 'http://auth-service:5000', 
-  changeOrigin: true 
-}));
+// Sử dụng các router proxy 
+app.use('/api/auth', authProxy);
+app.use('/api/users', userProxy); 
 
-app.use('/api/products', createProxyMiddleware({ 
-  target: process.env.PRODUCT_SERVICE_URL || 'http://product-service:5001', 
-  changeOrigin: true 
-}));
+// Xử lý lỗi 404 (Không tìm thấy route)
+app.use((_req: Request, res: Response) => {
+    res.status(404).json({ message: 'API endpoint not found.' });
+});
 
-app.use('/api/users', createProxyMiddleware({ 
-  target: process.env.USER_SERVICE_URL || 'http://user-service:5002', 
-  changeOrigin: true 
-}));
+// Xử lý lỗi tổng quát
+app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
+    console.error(err.stack);
+    res.status(500).json({ message: 'Something went wrong!' });
+});
 
-app.use('/api/cart', createProxyMiddleware({ 
-  target: process.env.CART_SERVICE_URL || 'http://cart-service:5003', 
-  changeOrigin: true 
-}));
-
-app.use('/api/order', createProxyMiddleware({ 
-  target: process.env.ORDER_SERVICE_URL || 'http://order-service:5004', 
-  changeOrigin: true 
-}));
-
-app.use('/api/inventory', createProxyMiddleware({ 
-  target: process.env.INVENTORY_SERVICE_URL || 'http://inventory-service:5005', 
-  changeOrigin: true 
-}));
-
+// Start the server
 app.listen(PORT, () => console.log(`API Gateway running on port http://localhost:${PORT}`));
