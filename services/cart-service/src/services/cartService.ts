@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import orderRoutes from './routes/orderRoutes';
+import cartRoutes from '../routes/cartRoutes';
 
 dotenv.config();
 
@@ -11,8 +11,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/orders', orderRoutes);
+app.use('/', cartRoutes);
 
 app.listen(PORT, () => {
-  console.log(`Product service listening on: http://localhost:${PORT}`);
+  console.log(`Cart service listening on: http://localhost:${PORT}`);
 });
