@@ -6,7 +6,7 @@ import { JWT_SECRET } from '../config/config';
 import { User } from '../models/authModel';
 
 
-export const register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response): Promise<void> => {
   const { name, email, password, role } = req.body;
   const provider: 'local' | 'google' | 'facebook' = 'local';
   try {
@@ -21,7 +21,7 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response): Promise<void> => {
   const { email, password, provider, oauthToken } = req.body;
   try {
     let user: User | null = null;
@@ -29,18 +29,21 @@ export const login = async (req: Request, res: Response) => {
     if (provider === 'google' || provider === 'facebook') {
       // Logic cho đăng nhập Google/Facebook
       if (!email || !oauthToken) {
-        return res.status(400).json({ message: `Email and OAuth token are required for ${provider} login.` });
+        res.status(400).json({ message: `Email and OAuth token are required for ${provider} login.` });
+        return;
       }
       user = await authService.authenticateOAuthUser(email, provider, oauthToken); 
     } else { // Mặc định là 'local' nếu không có provider hoặc provider là 'local'
       if (!email || !password) {
-        return res.status(400).json({ message: 'Email and password are required for local login.' });
+        res.status(400).json({ message: 'Email and password are required for local login.' });
+        return;
       }
       user = await authService.authenticateUser(email, password); 
     }
 
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      res.status(401).json({ message: 'Invalid credentials' });
+      return;
     }
 
     const token = generateToken(user.id, user.role, user.email, user.name);
@@ -55,11 +58,12 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const verifyToken = (req: Request, res: Response) => {
+export const verifyToken = async (req: Request, res: Response): Promise<void> => {
   const { token } = req.body;
 
   if (!token) {
-    return res.status(400).json({ isValid: false, message: 'Token is required for verification.' });
+    res.status(400).json({ isValid: false, message: 'Token is required for verification.' });
+    return;
   }
 
   try {
@@ -73,14 +77,16 @@ export const verifyToken = (req: Request, res: Response) => {
       email: decoded.email,
       message: 'Token is valid.'
     });
+    return;
   } catch (err: any) {
     console.error('Token verification failed:', err.message);
     if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({ isValid: false, message: 'Token has expired.' });
+        res.status(401).json({ isValid: false, message: 'Token has expired.' });
     }
     if (err.name === 'JsonWebTokenError') {
-        return res.status(401).json({ isValid: false, message: 'Invalid token.' });
+        res.status(401).json({ isValid: false, message: 'Invalid token.' });
     }
     res.status(401).json({ isValid: false, message: 'Token verification failed.' });
+    return;
   }
 };
