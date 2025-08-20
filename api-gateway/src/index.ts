@@ -6,6 +6,14 @@ import morgan from 'morgan';
 // Import router 
 import authProxy from './routes/authProxy';
 import userProxy from './routes/userProxy';
+import productProxy from './routes/productProxy';
+import productTypeProxy from './routes/productTypeProxy';
+import categoryProxy from './routes/categoryProxy';
+import sizeProxy from './routes/sizeProxy';
+import productSizeProxy from './routes/productSizeProxy';
+import sizeTypesProxy from './routes/sizeTypesProxy';
+import promotionProxy from './routes/promotionProxy';
+import orderProxy from './routes/orderProxy';
 
 dotenv.config();
 
@@ -23,6 +31,14 @@ app.get('/', (_req: Request, res: Response) => {
 // Sử dụng các router proxy 
 app.use('/api/auth', authProxy);
 app.use('/api/users', userProxy); 
+app.use('/api/products', productProxy);
+app.use('/api/productType', productTypeProxy);
+app.use('/api/categories', categoryProxy);
+app.use('/api/size', sizeProxy);
+app.use('/api/productSize', productSizeProxy);
+app.use('/api/sizeType', sizeTypesProxy);
+app.use('/api/promotion', promotionProxy);
+app.use('/api/orders', orderProxy);
 
 // Xử lý lỗi 404 (Không tìm thấy route)
 app.use((_req: Request, res: Response) => {

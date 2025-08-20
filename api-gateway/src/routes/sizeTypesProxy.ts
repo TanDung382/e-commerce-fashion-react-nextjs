@@ -1,4 +1,3 @@
-// api-gateway/src/routes/productProxy.ts
 import { Router, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
@@ -71,17 +70,12 @@ const proxyRequest = async (serviceUrl: string, req: Request, res: Response, pat
     }
 };
 
-// --- Product Routes ---
-// Public: GET products (list, hot, detail)
-router.get('/', (req: Request, res: Response) => {
-    proxyRequest(PRODUCT_SERVICE_URL, req, res);
-});
-    
-router.get('/best-sellers', (req: Request, res: Response) => proxyRequest(PRODUCT_SERVICE_URL, req, res));
+// --- Category Routes ---
+// Public: GET categories
+router.get('/', (req: Request, res: Response) => proxyRequest(PRODUCT_SERVICE_URL, req, res));
 router.get('/:id', (req: Request, res: Response) => proxyRequest(PRODUCT_SERVICE_URL, req, res));
-router.get('/category/:slug', (req: Request, res: Response) => proxyRequest(PRODUCT_SERVICE_URL, req, res));
 
-// Admin-only: POST, PUT, DELETE products
+// Admin-only: POST, PUT, DELETE categories
 router.post('/', authenticateToken, authorizeRoles(['admin']), (req: Request, res: Response) => proxyRequest(PRODUCT_SERVICE_URL, req, res));
 router.put('/:id', authenticateToken, authorizeRoles(['admin']), (req: Request, res: Response) => proxyRequest(PRODUCT_SERVICE_URL, req, res));
 router.delete('/:id', authenticateToken, authorizeRoles(['admin']), (req: Request, res: Response) => proxyRequest(PRODUCT_SERVICE_URL, req, res));
