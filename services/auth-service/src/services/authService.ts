@@ -18,7 +18,7 @@ const authService = {
       );
 
       if (rows.length > 0) {
-        throw new Error('User already exists');
+        throw new Error('Email đã tồn tại!');
       }
 
       const passwordHash = (provider === 'local') ? await bcrypt.hash(password, 10) : null; 
