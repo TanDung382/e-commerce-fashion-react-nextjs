@@ -1,18 +1,19 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import api from '../utils/api'; 
+import api from '../utils/api';
 import { useRouter } from 'next/navigation';
 import { User } from '../types/auth';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, redirectTo?: string) => Promise<void>;
   register: (name: string, email: string, password: string, role?: string) => Promise<any>;
   logout: () => void;
   isLoading: boolean;
+  isAdmin: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,7 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token'); // Lấy token từ localStorage
+    const storedToken = localStorage.getItem('token');
     if (storedToken) {
       setToken(storedToken);
       verifyStoredToken(storedToken);
@@ -44,17 +45,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           role: response.data.role,
         });
       } else {
-        logout(); // Token không hợp lệ
+        logout();
+        toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
       }
     } catch (error) {
-      console.error('Lỗi xác minh token:', error);
       logout();
+      toast.error('Phiên đăng nhập không hợp lệ.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, redirectTo?: string) => {
     setIsLoading(true);
     try {
       const response = await api.post('/api/auth/login', { email, password });
@@ -62,10 +64,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setToken(token);
       setUser(userData);
       localStorage.setItem('token', token);
-      router.push('/'); // Chuyển hướng sau đăng nhập
+      const redirectPath = redirectTo || localStorage.getItem('redirectAfterLogin') || '/';
+      localStorage.removeItem('redirectAfterLogin');
+      router.push(redirectPath);
+      toast.success('Đăng nhập thành công!');
     } catch (error: any) {
       console.error('Đăng nhập thất bại:', error.response?.data || error.message);
-      throw error.response?.data?.message || 'Đăng nhập thất bại';
+      if (error.response?.status === 401) {
+        throw new Error('Email hoặc mật khẩu không đúng.');
+      } else if (error.response?.status === 429) {
+        throw new Error('Quá nhiều yêu cầu. Vui lòng thử lại sau.');
+      }
+      throw new Error(error.response?.data?.message || 'Đăng nhập thất bại.');
     } finally {
       setIsLoading(false);
     }
@@ -75,10 +85,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     try {
       const response = await api.post('/api/auth/register', { name, email, password, role });
+      toast.success('Đăng ký thành công! Vui lòng đăng nhập.');
       return response.data;
     } catch (error: any) {
-      console.error('Đăng ký thất bại:', error.response?.data || error.message);
-      throw error.response?.data?.message || 'Đăng ký thất bại';
+      if (error.response?.status === 409) {
+        throw new Error('Email đã được sử dụng.');
+      }
+      throw new Error(error.response?.data?.message || 'Đăng ký thất bại.');
     } finally {
       setIsLoading(false);
     }
@@ -88,12 +101,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
-    router.push('/'); // Chuyển hướng về trang chính
+    localStorage.removeItem('redirectAfterLogin');
+    router.push('/');
     toast.success('Đăng xuất thành công!');
   };
 
+  const isAdmin = () => {
+    return user?.role === 'admin';
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, isLoading, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
